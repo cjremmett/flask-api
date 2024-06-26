@@ -1,1 +1,1 @@
-# flask-api
+API folder for Flask for my self hosted server.
