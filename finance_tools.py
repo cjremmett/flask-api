@@ -74,8 +74,12 @@ def get_stock_price_and_market_cap_gurufocus():
         if stock_price != None and market_cap != None:
             append_to_log('flask_logs', 'FINANCE', 'TRACE', 'Got native currency price and market cap successfully from GuruFocus for ticker ' + ticker + '.\n\nStock price: ' + stock_price + '\nMarket Cap: ' + market_cap)
             return(stock_price + ',' + market_cap, 200)
+        # Handle ETFs where they have a price but no market cap
+        elif stock_price != None and market_cap == None:
+            append_to_log('flask_logs', 'FINANCE', 'TRACE', 'Got native currency price successfully from GuruFocus for ticker ' + ticker + '.\n\nStock price: ' + stock_price)
+            return(stock_price + ',' + 'N/A', 200)
         else:
-            append_to_log('flask_logs', 'FINANCE', 'ERROR', 'Failed to get stock price and/or market cap successfully for ' + ticker + '.\n\nStock price: ' + str(stock_price) + '\nMarket Cap: ' + str(market_cap) + '\n\nHTML source: ' + source)
+            append_to_log('flask_logs', 'FINANCE', 'ERROR', 'Failed to get stock price and market cap successfully for ' + ticker + '.\n\nStock price: ' + str(stock_price) + '\nMarket Cap: ' + str(market_cap))
             return('', 500)
 
     except Exception as e:
