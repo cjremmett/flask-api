@@ -142,12 +142,13 @@ def get_stock_price_from_gurufocus_html_native_currency(source: str, ticker: str
         if len(split) < 2:
             # Handle ETF case - the page has different formatting
             # Snippet looks like: 
-            # ar.pretax_margain=a;ar.price=100.27;ar.price52whigh=100.67;
-            split = source.split(';ar.price=')
-            if len(split) != 2:
+            # ;aA.pretax_margain=a;aA.price=100.3201;aA.price52whigh=100.67;
+            split = source.split('.price=')
+            if len(split) < 2:
                 return None
             else:
-                return split[1].split(';')[0]
+                price = split[1].split(';')[0]
+                return str(round(float(price), 2))
         
         split = split[1][0:50].split(' ')
         if len(split) < 3:
