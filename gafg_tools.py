@@ -10,6 +10,9 @@ from datetime import datetime
 GAFG_CHECKIN_RECORDS_TABLE = 'gafg_checkin_records'
 GAFG_CHECKIN_USERS_TABLE = 'gafg_checkin_users'
 
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+
 # The user cannot set Saturday or Sunday to true. That's only for debug purposes.
 WEEKDAY_MAP = {0: 'monday', 1: 'tuesday', 2: 'wednesday', 3: 'thursday', 4: 'friday', 5: 'saturday', 6: 'sunday'}
 
@@ -280,3 +283,12 @@ def trigger_manual_checkin_reminder():
     except Exception as e:
       append_to_log('flask_logs', 'GAFG_TOOLS', 'ERROR', 'Exception thrown in trigger_manual_checkin_reminder: ' + repr(e))
       return('', 500)
+    
+
+def test_selenium():
+    options = webdriver.ChromeOptions()
+    options.add_argument("--headless=new")
+    driver = webdriver.Chrome(options=options)
+    driver.get("https://gafg.iofficeconnect.com/home.i#/")
+    print(driver.title)
+    driver.quit()
