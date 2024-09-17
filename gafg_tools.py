@@ -1,4 +1,4 @@
-from flask import request
+from flask import request, Response
 from utils import append_to_log, get_postgres_cursor_autocommit, get_postgres_date_now, get_uuid, execute_postgres_query, get_sql_formatted_list, authorized_via_redis_token
 from redis_tools import get_secrets_dict
 from email_tools import queue_gmail_message
@@ -279,4 +279,15 @@ def trigger_manual_checkin_reminder():
         return ('', 201)
     except Exception as e:
       append_to_log('flask_logs', 'GAFG_TOOLS', 'ERROR', 'Exception thrown in trigger_manual_checkin_reminder: ' + repr(e))
+      return('', 500)
+    
+
+def get_resource_access_logs():
+    try:
+        with get_postgres_cursor_autocommit('cjremmett') as cursor:
+            query = 'select * from resource_access_logs order by timestamp desc limit 20'
+            records_df = pd.read_sql_query(query, con=cursor)
+            return Response(records_df.to_json(orient="records"), mimetype='application/json')
+    except Exception as e:
+      append_to_log('flask_logs', 'GAFG_TOOLS', 'ERROR', 'Exception thrown in get_resource_access_logs: ' + repr(e))
       return('', 500)
