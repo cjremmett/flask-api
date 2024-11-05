@@ -32,6 +32,7 @@ app.add_url_rule('/flask/gafg-tools/ioffice-checkin', view_func=gafg_tools.ioffi
 app.add_url_rule('/flask/gafg-tools/ioffice-checkin-user-update-settings', view_func=gafg_tools.update_gafg_checkin_user_account, methods=['PUT'])
 app.add_url_rule('/flask/gafg-tools/trigger-manual-checkin-reminder', view_func=gafg_tools.trigger_manual_checkin_reminder, methods=['POST'])
 app.add_url_rule('/flask/gafg-tools/get-resource-access-logs', view_func=gafg_tools.get_resource_access_logs, methods=['GET'])
+app.add_url_rule('/flask/gafg-tools/sample-data', view_func=gafg_tools.get_resource_access_logs, methods=['GET'])
 
 # Email Tools
 app.add_url_rule('/flask/email-tools/get-outgoing-gscript-emails', view_func=email_tools.gscript_get_emails_to_send, methods=['GET'])
