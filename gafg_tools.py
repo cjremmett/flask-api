@@ -1,4 +1,4 @@
-from flask import request, Response, jsonify
+from flask import request, Response
 from utils import append_to_log, get_postgres_cursor_autocommit, get_postgres_date_now, get_uuid, execute_postgres_query, get_sql_formatted_list, authorized_via_redis_token
 from redis_tools import get_secrets_dict
 from email_tools import queue_gmail_message
@@ -293,7 +293,10 @@ def get_resource_access_logs():
         append_to_log('flask_logs', 'GAFG_TOOLS', 'ERROR', 'Exception thrown in get_resource_access_logs: ' + repr(e))
         return('', 500)
     
-    
-def sample_data():
-    d = {'Stocks:': {'AAPL': 100, 'MSFT': 200, 'AMZN': 300}}
-    return jsonify(d)
+
+def get_sample_data():
+    try:
+        return {'stocks': [{'ticker': 'AAPL', 'price': 100}, {'ticker': 'MSFT', 'price': 200}, {'ticker': 'AMZN', 'price': 300}]}
+    except Exception as e:
+        append_to_log('flask_logs', 'GAFG_TOOLS', 'ERROR', 'Exception thrown in get_sample_data: ' + repr(e))
+        return('', 500)
