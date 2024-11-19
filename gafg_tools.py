@@ -7,7 +7,6 @@ from typing import List, Optional
 import re
 import pandas as pd
 from datetime import datetime
-from time import sleep
 GAFG_CHECKIN_RECORDS_TABLE = 'gafg_checkin_records'
 GAFG_CHECKIN_USERS_TABLE = 'gafg_checkin_users'
 
@@ -321,13 +320,17 @@ def get_sample_data():
     
 
 def submit_sample_stock():
-    # Example JSON: {"ticker": "AAPL","price": 1234}
+    # Example JSON: {"Ticker": "AAPL","Price": 1234}
     try:
         json_body = request.json
-        if 'ticker' in json_body and 'price' in json_body and (json_body['ticker'] == 'AAPL' or json_body['ticker'] == 'MSFT' or json_body['ticker'] == 'AMZN'):
-            append_to_log('flask_logs', 'GAFG_TOOLS', 'TRACE', 'Successfully received API call with ticker ' + json_body['ticker'] + '.')
-            sleep(4)
-            return('', 201)
+        if 'Ticker' in json_body and 'Price' in json_body:
+            if  (json_body['Ticker'] == 'AAPL' or json_body['Ticker'] == 'MSFT' or json_body['Ticker'] == 'AMZN'):
+                append_to_log('flask_logs', 'GAFG_TOOLS', 'TRACE', 'Successfully received API call with ticker ' + json_body['Ticker'] + '.')
+                return('Processed OK!', 201)
+        elif 'ticker' in json_body and 'price' in json_body:
+            if (json_body['ticker'] == 'AAPL' or json_body['ticker'] == 'MSFT' or json_body['ticker'] == 'AMZN'):
+                append_to_log('flask_logs', 'GAFG_TOOLS', 'TRACE', 'Successfully received API call with ticker ' + json_body['ticker'] + '.')
+                return('Processed OK!', 201)
         else:
             append_to_log('flask_logs', 'GAFG_TOOLS', 'WARNING', 'Failed to find required fields in submit_sample_stock. Received: ' + str(json_body))
             return('Failed to find required fields in submitted JSON. You sent: ' + str(json_body), 400)
