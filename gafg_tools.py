@@ -340,6 +340,7 @@ def submit_sample_stock():
 
 
 def get_sample_portfolio():
+    # Total sum in $86,550
     try:
         return {'positions': [{'ticker': 'AAPL', 'numSharesHeld': 125, 'pricePerShare': 225}, {'ticker': 'MSFT', 'numSharesHeld': 65, 'pricePerShare': 415}, {'ticker': 'AMZN', 'numSharesHeld': 170, 'pricePerShare': 185}]}
     except Exception as e:
