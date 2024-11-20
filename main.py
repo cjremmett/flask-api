@@ -34,6 +34,7 @@ app.add_url_rule('/flask/gafg-tools/trigger-manual-checkin-reminder', view_func=
 app.add_url_rule('/flask/gafg-tools/get-resource-access-logs', view_func=gafg_tools.get_resource_access_logs, methods=['GET'])
 app.add_url_rule('/flask/gafg-tools/sample-data', view_func=gafg_tools.get_sample_data, methods=['GET'])
 app.add_url_rule('/flask/gafg-tools/submit_sample_stock', view_func=gafg_tools.submit_sample_stock, methods=['POST'])
+app.add_url_rule('/flask/gafg-tools/get_sample_portfolio', view_func=gafg_tools.get_sample_portfolio, methods=['GET'])
 
 # Email Tools
 app.add_url_rule('/flask/email-tools/get-outgoing-gscript-emails', view_func=email_tools.gscript_get_emails_to_send, methods=['GET'])

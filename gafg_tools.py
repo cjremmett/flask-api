@@ -337,3 +337,11 @@ def submit_sample_stock():
     except Exception as e:
         append_to_log('flask_logs', 'GAFG_TOOLS', 'ERROR', 'Exception thrown in submit_sample_stock: ' + repr(e))
         return('', 500)
+
+
+def get_sample_portfolio():
+    try:
+        return {'positions': [{'ticker': 'AAPL', 'numSharesHeld': 125, 'pricePerShare': 225}, {'ticker': 'MSFT', 'numSharesHeld': 65, 'pricePerShare': 415}, {'ticker': 'AMZN', 'numSharesHeld': 170, 'pricePerShare': 185}]}
+    except Exception as e:
+        append_to_log('flask_logs', 'GAFG_TOOLS', 'ERROR', 'Exception thrown in get_sample_portfolio: ' + repr(e))
+        return('', 500)
