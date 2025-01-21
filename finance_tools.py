@@ -134,10 +134,9 @@ def get_fx_conversion_rate_from_alpha_vantage(currency: str) -> str:
     # '6. Last Refreshed': '2025-01-21 15:20:01', '7. Time Zone': 'UTC', '8. Bid Price': '155.53250000', '9. Ask Price': '155.54310000'}}
     try:
         api_key = get_api_key('alpha_vantage')
-        append_to_log('flask_logs', 'FINANCE', 'DEBUG', 'API key: ' + api_key)
         response = requests.get('https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=USD&to_currency=' + currency + '&apikey=' + api_key)
         resp_json = response.json()
-        fx_rate = resp_json['Realtime Currency Exchange Rate']['5. Exchange Rate']
+        fx_rate = float(resp_json['Realtime Currency Exchange Rate']['5. Exchange Rate'])
         fx_rate = round(fx_rate, 2)
         return str(fx_rate)
     
