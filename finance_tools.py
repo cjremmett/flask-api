@@ -29,7 +29,7 @@ def get_fx_rate_to_usd():
             append_to_log('flask_logs', 'FINANCE', 'TRACE', 'Got forex conversion rate successfully for currency ' + currency + '.\n\nForex conversion rate: ' + fx_rate)
             return(fx_rate, 200)
         else:
-            append_to_log('flask_logs', 'FINANCE', 'ERROR', 'Failed to get forex conversion successfully for currency ' + currency + '.\n\nForex conversion rate: ' + str(fx_rate) + '\n\nHTML source: ' + source)
+            append_to_log('flask_logs', 'FINANCE', 'ERROR', 'Failed to get forex conversion successfully for currency ' + currency + '.\n\nForex conversion rate: ' + str(fx_rate))
             return('', 500)
 
     except Exception as e:
