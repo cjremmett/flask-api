@@ -134,6 +134,7 @@ def get_fx_conversion_rate_from_alpha_vantage(currency: str) -> str:
     # '6. Last Refreshed': '2025-01-21 15:20:01', '7. Time Zone': 'UTC', '8. Bid Price': '155.53250000', '9. Ask Price': '155.54310000'}}
     try:
         api_key = get_api_key('alpha_vantage')
+        append_to_log('flask_logs', 'FINANCE', 'DEBUG', 'API key: ' + api_key)
         response = requests.get('https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=USD&to_currency=' + currency + '&apikey=' + api_key)
         resp_json = response.json()
         fx_rate = resp_json['Realtime Currency Exchange Rate']['5. Exchange Rate']
@@ -141,7 +142,7 @@ def get_fx_conversion_rate_from_alpha_vantage(currency: str) -> str:
         return str(fx_rate)
     
     except Exception as e:
-        append_to_log('flask_logs', 'FINANCE', 'ERROR', 'Failed to get forex conversion rate from Alpha Vantage for currency ' + currency + '.')
+        append_to_log('flask_logs', 'FINANCE', 'ERROR', 'Failed to get forex conversion rate from Alpha Vantage for currency ' + currency + '. ' + repr(e))
         return None
 
 def get_stock_price_from_gurufocus_html_native_currency(source: str, ticker: str):
