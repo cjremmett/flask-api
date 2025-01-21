@@ -112,6 +112,15 @@ def authorized_via_redis_token(request, module:str) -> bool:
     except Exception as e:
         append_to_log('flask_logs', 'UTILS', 'WARNING', 'Exception thrown in authorization check: ' + repr(e))
         return False
+    
+   
+def get_api_key(service: str) -> str:
+   try:
+        secrets = get_secrets_dict()
+        return secrets['secrets']['api_keys'][service]
+   except Exception as e:
+      append_to_log('flask_logs', 'UTILS', 'WARNING', 'Exception thrown in get_api_key: ' + repr(e))
+      return 'KEY_NOT_FOUND'
 
 
 def get_heartbeat():

@@ -1,7 +1,7 @@
 import requests
 from flask import request
 import re
-from utils import append_to_log, authorized_via_redis_token
+from utils import append_to_log, authorized_via_redis_token, get_api_key
 
 
 def get_fx_rate_to_usd():
@@ -112,6 +112,7 @@ def get_google_fx_html_source(currency: str) -> str:
         return None
     
 def get_fx_conversion_rate_from_google_html_source(source: str, currency: str) -> str:
+    # Does not work anymore as of 1/21/25
     # Return FX conversion rate to USD as a string, rounded to two decimal places
     # Snippet of source we're using:
     # <span class="DFlfde SwHCTb" data-precision="2" data-value="154.818">154.82</span> <span class="MWvIVe nGP2Tb" data-mid="/m/088n7"
@@ -130,6 +131,23 @@ def get_fx_conversion_rate_from_google_html_source(source: str, currency: str) -
 
     except Exception as e:
         append_to_log('flask_logs', 'FINANCE', 'ERROR', 'Failed to get forex conversion rate correctly from Google HTML source for currency ' + currency + '.')
+        return None
+    
+def get_fx_conversion_rate_from_alpha_vantage(currency: str) -> str:
+    # JSON looks like this:
+    # {'Realtime Currency Exchange Rate': {'1. From_Currency Code': 'USD', '2. From_Currency Name': 'United States Dollar', 
+    # '3. To_Currency Code': 'JPY', '4. To_Currency Name': 'Japanese Yen', '5. Exchange Rate': '155.53900000', 
+    # '6. Last Refreshed': '2025-01-21 15:20:01', '7. Time Zone': 'UTC', '8. Bid Price': '155.53250000', '9. Ask Price': '155.54310000'}}
+    try:
+        api_key = get_api_key('alpha_vantage')
+        response = requests.get('https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=USD&to_currency=' + currency + '&apikey=' + api_key)
+        resp_json = response.json()
+        fx_rate = resp_json['Realtime Currency Exchange Rate']['5. Exchange Rate']
+        fx_rate = round(fx_rate, 2)
+        return str(fx_rate)
+    
+    except Exception as e:
+        append_to_log('flask_logs', 'FINANCE', 'ERROR', 'Failed to get forex conversion rate from Alpha Vantage for currency ' + currency + '.')
         return None
 
 def get_stock_price_from_gurufocus_html_native_currency(source: str, ticker: str):
