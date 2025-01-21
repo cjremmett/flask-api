@@ -20,19 +20,13 @@ def get_fx_rate_to_usd():
             append_to_log('flask_logs', 'FINANCE', 'ERROR', 'Bad ticker submitted. Ticker: ' + str(currency))
             return ('', 400)
         
-        # Get HTML source from Google
-        source = get_google_fx_html_source(currency)
-        if source == None or len(source) < 100 or len(source) > 10000000:
-            append_to_log('flask_logs', 'FINANCE', 'ERROR', 'Failed to get HTML source correctly from Google for currency ' + currency + '.')
-            return ('', 500)
-        
-        # Get the FX conversion rate using the HTML source from Google
-        fx_rate = get_fx_conversion_rate_from_google_html_source(source, currency)
+        # Get the FX conversion rate using Alpha Vantage API
+        fx_rate = get_fx_conversion_rate_from_alpha_vantage(currency)
 
         # Return the result.
         # VBA has trouble with JSON so just send straight text back since the use case for this is displaying data in Excel.
         if fx_rate != None:
-            append_to_log('flask_logs', 'FINANCE', 'TRACE', 'Got forex conversion rate successfully from Google for currency ' + currency + '.\n\nForex conversion rate: ' + fx_rate)
+            append_to_log('flask_logs', 'FINANCE', 'TRACE', 'Got forex conversion rate successfully for currency ' + currency + '.\n\nForex conversion rate: ' + fx_rate)
             return(fx_rate, 200)
         else:
             append_to_log('flask_logs', 'FINANCE', 'ERROR', 'Failed to get forex conversion successfully for currency ' + currency + '.\n\nForex conversion rate: ' + str(fx_rate) + '\n\nHTML source: ' + source)
