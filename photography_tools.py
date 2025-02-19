@@ -1,5 +1,6 @@
 from utils import append_to_log, authorized_via_redis_token
-import py3exiv2
+from PIL import Image, ExifTags
+from flask import request
 
 def get_exif_metadata_from_image():
     try:
@@ -7,10 +8,22 @@ def get_exif_metadata_from_image():
             return ('', 401)
         image_path = request.headers.get('imagePath')
 
-        img = py3exiv2.Image(image_path)
-        exif_data = img.read_exif()
+        img = Image.open(image_path)
+        img_exif = img.getexif()
+        # print(type(img_exif))
+        # <class 'PIL.Image.Exif'>
+        exif_dict = {}
+        if img_exif is None:
+            append_to_log('flask_logs', 'PHOTOGRAPHY', 'TRACE', 'Sorry, image has no exif data.')
+        else:
+            for key, val in img_exif.items():
+                if key in ExifTags.TAGS:
+                    exif_dict[ExifTags.TAGS[key]] = val
+                else:
+                    exif_dict[key] = val
+
         append_to_log('flask_logs', 'PHOTOGRAPHY', 'TRACE', 'Sent EXIF data for image at ' + image_path)
-        return exif_data
+        return exif_dict
 
     except Exception as e:
         append_to_log('flask_logs', 'PHOTOGRAPHY', 'ERROR', 'Exception thrown getting metadata from image. Error: ' + repr(e))
