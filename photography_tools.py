@@ -3,6 +3,7 @@ from PIL import Image, ExifTags
 from flask import request
 
 def get_exif_metadata_from_image():
+    # Cannot read RAW/ARW files
     try:
         if not authorized_via_redis_token(request, 'photography_tools'):
             return ('', 401)

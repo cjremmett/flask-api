@@ -36,7 +36,6 @@ app.add_url_rule('/flask/gafg-tools/get-resource-access-logs', view_func=gafg_to
 app.add_url_rule('/flask/gafg-tools/sample-data', view_func=gafg_tools.get_sample_data, methods=['GET'])
 app.add_url_rule('/flask/gafg-tools/submit-sample-stock', view_func=gafg_tools.submit_sample_stock, methods=['POST'])
 app.add_url_rule('/flask/gafg-tools/get-sample-portfolio', view_func=gafg_tools.get_sample_portfolio, methods=['GET'])
-app.add_url_rule('/flask/photography-tools/get-exif', view_func=photography_tools.get_exif_metadata_from_image, methods=['GET'])
 
 # Email Tools
 app.add_url_rule('/flask/email-tools/get-outgoing-gscript-emails', view_func=email_tools.gscript_get_emails_to_send, methods=['GET'])
