@@ -13,16 +13,20 @@ def get_exif_metadata_from_image():
         # print(type(img_exif))
         # <class 'PIL.Image.Exif'>
         exif_dict = {}
+        append_to_log('flask_logs', 'PHOTOGRAPHY', 'TRACE', type(img))
+        append_to_log('flask_logs', 'PHOTOGRAPHY', 'TRACE', type(img_exif))
         if img_exif is None:
             append_to_log('flask_logs', 'PHOTOGRAPHY', 'TRACE', 'Sorry, image has no exif data.')
         else:
             for key, val in img_exif.items():
+                append_to_log('flask_logs', 'PHOTOGRAPHY', 'TRACE', key + ' ' + val)
                 if key in ExifTags.TAGS:
                     exif_dict[ExifTags.TAGS[key]] = val
                 else:
                     exif_dict[key] = val
 
         append_to_log('flask_logs', 'PHOTOGRAPHY', 'TRACE', 'Sent EXIF data for image at ' + image_path)
+        append_to_log('flask_logs', 'PHOTOGRAPHY', 'TRACE', str(exif_dict))
         return exif_dict
 
     except Exception as e:
