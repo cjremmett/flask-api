@@ -19,7 +19,7 @@ def get_exif_metadata_from_image():
             append_to_log('flask_logs', 'PHOTOGRAPHY', 'TRACE', 'Sorry, image has no exif data.')
         else:
             for key, val in img_exif.items():
-                append_to_log('flask_logs', 'PHOTOGRAPHY', 'TRACE', key + ' ' + val)
+                append_to_log('flask_logs', 'PHOTOGRAPHY', 'TRACE', str(key) + ' ' + str(val))
                 if key in ExifTags.TAGS:
                     exif_dict[ExifTags.TAGS[key]] = val
                 else:
