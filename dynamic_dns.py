@@ -37,8 +37,7 @@ def update_namecheap_dns_record():
 def get_public_ip() -> str:
     try:
         response = requests.get('https://dynamicdns.park-your-domain.com/getip')
-        #return response.text
-        return "1.1.1.1"
+        return response.text
     except Exception as e:
         append_to_log('flask_logs', 'DYNAMIC_DNS', 'ERROR', 'Exception thrown in get_public_ip: ' + repr(e))
         return None
