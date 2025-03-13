@@ -28,8 +28,10 @@ def update_namecheap_dns_record():
         domain_name = request.args.get('domain_name')
         ip = get_public_ip()
         update_dynamic_dns_namecheap(host, domain_name, ddns_password, ip)
+        return ('', 200)
     except Exception as e:
         append_to_log('flask_logs', 'DYNAMIC_DNS', 'ERROR', 'Exception thrown in get_namecheap_password: ' + repr(e))
+        return ('', 500)
 
 
 def get_public_ip() -> str:
