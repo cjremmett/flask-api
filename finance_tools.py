@@ -229,20 +229,6 @@ def get_api_ninjas_api_key() -> str:
     except Exception as e:
         append_to_log('flask_logs', 'FINANCE', 'ERROR', 'Exception thrown in get_api_ninjas_api_key: ' + repr(e))
         return ''
-    
-
-def get_earnings_call_transcript(ticker: str, year: int, quarter: int) -> str:
-    
-    ticker = 'GOOGL'
-    year = 2027
-    quarter = 4
-
-    api_url = 'https://api.api-ninjas.com/v1/earningstranscript?ticker={}&year={}&quarter={}'.format(ticker, year, quarter)
-    response = requests.get(api_url, headers={'X-Api-Key': 'igM0GY22birawMkCihpjJw==PLDC4nbchMbFb9YP'})
-    if response.status_code == requests.codes.ok:
-        print(response.text)
-    else:
-        print("Error:", response.status_code, response.text)
 
 
 def get_earnings_call_transcript_from_db(ticker: str, year: int, quarter: int) -> str:
@@ -354,7 +340,7 @@ def get_earnings_call_transcript(ticker: str, year: int, quarter: int) -> str:
     """
     try:
         ticker = ticker.trim().upper()
-        
+
         # Check if the transcript exists in the database
         transcript = get_earnings_call_transcript_from_db(ticker, year, quarter)
         
