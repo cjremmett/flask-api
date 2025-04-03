@@ -11,7 +11,7 @@ from redis_tools import get_secrets_dict
 def get_postgres_engine(database):
    try:
       # Postgres is not port forwarded so hardcoded login should be fine
-      return sqlalchemy.create_engine("postgresql+psycopg2://admin:pass@localhost:5432/" + database)
+      return sqlalchemy.create_engine("postgresql+psycopg2://admin:pass@192.168.0.121:5432/" + database)
    except Exception as e:
       print('Getting Postgres engine failed. Error:' + repr(e))
       raise Exception('Failed to get SQLAlchemy Postgres engine.')

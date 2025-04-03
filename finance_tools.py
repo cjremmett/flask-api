@@ -2,6 +2,9 @@ import requests
 from flask import request
 import re
 from utils import append_to_log, authorized_via_redis_token, get_api_key
+from redis_tools import get_secrets_dict
+from pymongo import MongoClient
+MONGO_CONNECTION_STRING = 'mongodb://admin:admin@192.168.0.121'
 
 
 def get_fx_rate_to_usd():
@@ -218,13 +221,152 @@ def get_market_cap_from_gurufocus_html_native_currency(source: str, ticker: str)
         append_to_log('flask_logs', 'FINANCE', 'ERROR', 'Failed to get market cap correctly from GuruFocus HTML source for ticker ' + ticker + '. Error:\n' + repr(e))
         return None
     
-# if __name__ == '__main__':
-#     import requests
-#     import finance_tools
-#     ticker = 'HKSE:00700'
-#     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36'}
-#     response = requests.get('https://www.gurufocus.com/stock/' + ticker + '/summary', headers=headers)
-#     source = str(response.content)
-#     val = finance_tools.get_stock_price_from_gurufocus_html_native_currency(source, ticker)
-#     val = finance_tools.get_market_cap_from_gurufocus_html_native_currency(source, ticker)
-#     print(str(val))
+
+def get_api_ninjas_api_key() -> str:
+    try:
+        secrets_dict = get_secrets_dict()
+        return secrets_dict['secrets']['api-ninjas']['api_key']
+    except Exception as e:
+        append_to_log('flask_logs', 'FINANCE', 'ERROR', 'Exception thrown in get_api_ninjas_api_key: ' + repr(e))
+        return ''
+    
+
+def get_earnings_call_transcript(ticker: str, year: int, quarter: int) -> str:
+    
+    ticker = 'GOOGL'
+    year = 2027
+    quarter = 4
+
+    api_url = 'https://api.api-ninjas.com/v1/earningstranscript?ticker={}&year={}&quarter={}'.format(ticker, year, quarter)
+    response = requests.get(api_url, headers={'X-Api-Key': 'igM0GY22birawMkCihpjJw==PLDC4nbchMbFb9YP'})
+    if response.status_code == requests.codes.ok:
+        print(response.text)
+    else:
+        print("Error:", response.status_code, response.text)
+
+
+def get_earnings_call_transcript_from_db(ticker: str, year: int, quarter: int) -> str:
+    """
+    Queries MongoDB to check if a record exists with matching ticker, year, and quarter.
+    Returns the contents of the transcript field if the record exists, otherwise returns an empty string.
+
+    :param ticker: The stock ticker symbol (e.g., 'GOOGL').
+    :param year: The year of the earnings call (e.g., 2027).
+    :param quarter: The quarter of the earnings call (e.g., 4).
+    :return: The transcript as a string if found, otherwise an empty string.
+    """
+    try:
+        client = MongoClient(MONGO_CONNECTION_STRING)
+        db = client["finance"]
+        collection = db["earnings_call_transcripts"]
+
+        # Query the database
+        query = {"ticker": ticker, "year": year, "quarter": quarter}
+        record = collection.find_one(query)
+
+        # Return the transcript if the record exists
+        if record and "transcript" in record:
+            return record["transcript"]
+        else:
+            return ""
+
+    except Exception as e:
+        append_to_log('flask_logs', 'FINANCE', 'ERROR', f"Error querying MongoDB: {repr(e)}")
+        raise Exception(f"Error querying MongoDB: {repr(e)}")
+
+    finally:
+        client.close()
+
+
+def upsert_earnings_call_transcript(ticker: str, year: int, quarter: int, transcript: str) -> bool:
+    """
+    Upserts an earnings call transcript record into MongoDB.
+    If a record with the same ticker, year, and quarter exists, it updates the transcript field.
+    Otherwise, it inserts a new record.
+
+    :param ticker: The stock ticker symbol (e.g., 'GOOGL').
+    :param year: The year of the earnings call (e.g., 2027).
+    :param quarter: The quarter of the earnings call (e.g., 4).
+    :param transcript: The transcript content to store.
+    :return: True if the operation is successful, False otherwise.
+    """
+    try:
+        # Connect to MongoDB
+        client = MongoClient(MONGO_CONNECTION_STRING)
+        db = client["finance"]
+        collection = db["earnings_call_transcripts"]
+
+        # Upsert the record
+        query = {"ticker": ticker, "year": year, "quarter": quarter}
+        update = {"$set": {"transcript": transcript}}
+        result = collection.update_one(query, update, upsert=True)
+
+        # Return True if the operation was successful
+        return result.acknowledged
+
+    except Exception as e:
+        # Log the error
+        append_to_log('flask_logs', 'FINANCE', 'ERROR', f"Error upserting MongoDB record: {repr(e)}")
+        return False
+
+    finally:
+        # Close the MongoDB connection
+        client.close()
+
+
+def get_earnings_call_transcript_from_api_ninjas(ticker: str, year: int, quarter: int) -> str:
+    """
+    Fetches the earnings call transcript from the API Ninjas service.
+    Returns the transcript as a string.
+
+    :param ticker: The stock ticker symbol (e.g., 'GOOGL').
+    :param year: The year of the earnings call (e.g., 2027).
+    :param quarter: The quarter of the earnings call (e.g., 4).
+    :return: The transcript as a string.
+    """
+    try:
+        api_key = get_api_ninjas_api_key()
+        api_url = f'https://api.api-ninjas.com/v1/earningstranscript?ticker={ticker}&year={year}&quarter={quarter}'
+        headers = {'X-Api-Key': api_key}
+        response = requests.get(api_url, headers=headers)
+
+        if response.status_code == requests.codes.ok:
+            data = response.json()
+            return data['transcript'] if 'transcript' in data else ""
+        else:
+            append_to_log('flask_logs', 'FINANCE', 'ERROR', f"Error fetching transcript for {ticker} {year} {quarter} from API Ninjas: {response.status_code}")
+            return ""
+
+    except Exception as e:
+        append_to_log('flask_logs', 'FINANCE', 'ERROR', f"Exception fetching transcript for {ticker} {year} {quarter} from API Ninjas: {repr(e)}")
+        return ""
+    
+
+def get_earnings_call_transcript(ticker: str, year: int, quarter: int) -> str:
+    """
+    Fetches the earnings call transcript for a given ticker, year, and quarter.
+    First checks the database for an existing record. If not found, fetches from API Ninjas and stores it in the database.
+
+    :param ticker: The stock ticker symbol (e.g., 'GOOGL').
+    :param year: The year of the earnings call (e.g., 2027).
+    :param quarter: The quarter of the earnings call (e.g., 4).
+    :return: The transcript as a string.
+    """
+    try:
+        ticker = ticker.trim().upper()
+        
+        # Check if the transcript exists in the database
+        transcript = get_earnings_call_transcript_from_db(ticker, year, quarter)
+        
+        if not transcript or transcript == "":
+            # If not found, fetch from API Ninjas
+            transcript = get_earnings_call_transcript_from_api_ninjas(ticker, year, quarter)
+            
+            # Store the fetched transcript in the database
+            upsert_earnings_call_transcript(ticker, year, quarter, transcript)
+
+        return transcript
+    
+    except Exception as e:
+        append_to_log('flask_logs', 'FINANCE', 'ERROR', f"Exception in get_earnings_call_transcript: {repr(e)}")
+        return ""

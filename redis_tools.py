@@ -2,7 +2,7 @@ import redis
 import json
 import os
 import sys
-REDIS_HOST = 'localhost'
+REDIS_HOST = '192.168.0.121'
 SECRETS_DIR = '/home/cjr/secrets'
 
 def get_json_from_file_as_dict(file):
