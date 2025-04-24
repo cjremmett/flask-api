@@ -5,6 +5,7 @@ import gafg_tools
 import utils
 import photography_tools
 import werkzeug
+import ai_tools
 import dynamic_dns
 from werkzeug.middleware.proxy_fix import ProxyFix
 
@@ -41,5 +42,5 @@ app.add_url_rule('/flask/gafg-tools/get-sample-portfolio', view_func=gafg_tools.
 # Email Tools
 app.add_url_rule('/flask/email-tools/get-outgoing-gscript-emails', view_func=email_tools.gscript_get_emails_to_send, methods=['GET'])
 
-# DDNS
-app.add_url_rule('/flask/dynamic-dns/update-namecheap-dns-record', view_func=dynamic_dns.update_namecheap_dns_record, methods=['PUT'])
+# AI Tools
+app.add_url_rule('/flask/ai-tools/get-dummy-message', view_func=ai_tools.get_dummy_message, methods=['GET'])
