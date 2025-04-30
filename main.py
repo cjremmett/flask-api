@@ -8,8 +8,10 @@ import werkzeug
 import ai_tools
 import dynamic_dns
 from werkzeug.middleware.proxy_fix import ProxyFix
+from flask_socketio import SocketIO
 
 app = Flask(__name__)
+socketio = SocketIO(app)
 
 # Boilerplate code to trust the proxy remote IP
 # https://flask.palletsprojects.com/en/2.3.x/deploying/proxy_fix/
@@ -44,3 +46,6 @@ app.add_url_rule('/flask/email-tools/get-outgoing-gscript-emails', view_func=ema
 
 # AI Tools
 app.add_url_rule('/flask/ai-tools/get-dummy-message', view_func=ai_tools.get_dummy_message, methods=['GET'])
+
+if __name__ == '__main__':
+    socketio.run(app)

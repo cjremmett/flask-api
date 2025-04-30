@@ -1,8 +1,15 @@
 from flask import jsonify
 from time import sleep
+from flask_socketio import send, emit
 
 
 def get_dummy_message(): 
     sleep(2)
     message = {"message": "Hello, this is a dummy message!"}
     return (jsonify(message), 200)
+
+
+@socketio.on('json')
+def handle_test_websocket_message(json):
+    resp_json = {'message': 'This is a dummy response. Your message was: ' + json['message']}
+    send(resp_json, json=True)
