@@ -49,3 +49,16 @@ app.add_url_rule('/flask/email-tools/get-outgoing-gscript-emails', view_func=ema
 
 # AI Tools
 app.add_url_rule('/flask/ai-tools/get-dummy-message', view_func=ai_tools.get_dummy_message, methods=['GET'])
+
+
+# [Unit]
+# Description=Gunicorn Flask Server
+
+# [Service]
+# Type=simple
+# WorkingDirectory=/home/cjr/flask
+# Environment="PATH=/home/cjr/flask/bin"
+# ExecStart=/home/cjr/flask/bin/gunicorn --chdir /home/cjr/flask/api/ wsgi:app --bind 0.0.0.0:5000 --worker-class eventlet -w 1
+
+# [Install]
+# WantedBy=multi-user.targets

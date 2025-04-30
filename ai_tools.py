@@ -3,6 +3,7 @@ from time import sleep
 from flask_socketio import send, emit
 
 # Need this to support socketio decorators
+# Docs say we need to import from __main__, but with gunicorn __name__ == 'main'
 from main import socketio
 
 
