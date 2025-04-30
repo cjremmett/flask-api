@@ -49,6 +49,3 @@ app.add_url_rule('/flask/email-tools/get-outgoing-gscript-emails', view_func=ema
 
 # AI Tools
 app.add_url_rule('/flask/ai-tools/get-dummy-message', view_func=ai_tools.get_dummy_message, methods=['GET'])
-
-if __name__ == '__main__':
-    socketio.run(app)
