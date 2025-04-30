@@ -2,6 +2,9 @@ from flask import jsonify
 from time import sleep
 from flask_socketio import send, emit
 
+# Need this to support socketio decorators
+from __main__ import socketio
+
 
 def get_dummy_message(): 
     sleep(2)

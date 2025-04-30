@@ -5,13 +5,16 @@ import gafg_tools
 import utils
 import photography_tools
 import werkzeug
-import ai_tools
 import dynamic_dns
 from werkzeug.middleware.proxy_fix import ProxyFix
 from flask_socketio import SocketIO
 
 app = Flask(__name__)
 socketio = SocketIO(app)
+
+# Need to import this after creating the socketio variable
+# https://github.com/miguelgrinberg/Flask-SocketIO/issues/561
+import ai_tools
 
 # Boilerplate code to trust the proxy remote IP
 # https://flask.palletsprojects.com/en/2.3.x/deploying/proxy_fix/
