@@ -12,8 +12,6 @@ from flask_socketio import SocketIO
 app = Flask(__name__)
 socketio = SocketIO(app)
 
-print(__name__)
-
 # Need to import this after creating the socketio variable
 # https://github.com/miguelgrinberg/Flask-SocketIO/issues/561
 import ai_tools
