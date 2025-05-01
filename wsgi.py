@@ -1,4 +1,4 @@
-from main import socketio
+from main import app, socketio
 
 if __name__ == "__main__":
-    socketio.run()
+    socketio.run(app)
