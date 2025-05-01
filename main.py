@@ -10,7 +10,7 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from flask_socketio import SocketIO
 
 app = Flask(__name__)
-socketio = SocketIO(app)
+socketio = SocketIO(app, path='/flask/socket.io')
 
 # Need to import this after creating the socketio variable
 # https://github.com/miguelgrinberg/Flask-SocketIO/issues/561
