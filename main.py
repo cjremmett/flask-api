@@ -8,9 +8,11 @@ import werkzeug
 import dynamic_dns
 from werkzeug.middleware.proxy_fix import ProxyFix
 from flask_socketio import SocketIO
+from flask_cors import CORS
 
 app = Flask(__name__)
 socketio = SocketIO(app, path='/flask/socket.io')
+CORS(app)
 
 # Need to import this after creating the socketio variable
 # https://github.com/miguelgrinberg/Flask-SocketIO/issues/561
