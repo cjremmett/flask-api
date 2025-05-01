@@ -11,7 +11,7 @@ from flask_socketio import SocketIO
 from flask_cors import CORS
 
 app = Flask(__name__)
-socketio = SocketIO(app, path='/flask/socket.io')
+socketio = SocketIO(app, path='/flask/socket.io', cors_allowed_origins='*')
 CORS(app)
 
 # Need to import this after creating the socketio variable
