@@ -106,17 +106,12 @@ def handle_user_message(userid: str, message_contents: dict):
         # Generate AI response
         dummy_ai_reponse = {"message": 'Hello world! This is a dummy AI response!', "isSystemMessage": True}
 
-        # Store AI response
+        # Store AI response. If successful, send to user to display.
         if store_message(userid, generate_new_ai_message_id(), dummy_ai_reponse):
-            send({
-                "message": dummy_ai_reponse['message'],
-                "isSystemMessage": dummy_ai_reponse['isSystemMessage']
-            })
+            send(message=dummy_ai_reponse, json=True, namespace='server_message')
         else:
             return
-
-        # Send AI response to user
-        send(dummy_ai_reponse)
+        
 
     except Exception as e:
         append_to_log('flask_logs', 'AI', 'ERROR', f"Error handling user message: {repr(e)}")
