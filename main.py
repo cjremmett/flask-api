@@ -50,7 +50,7 @@ app.add_url_rule('/flask/gafg-tools/get-sample-portfolio', view_func=gafg_tools.
 app.add_url_rule('/flask/email-tools/get-outgoing-gscript-emails', view_func=email_tools.gscript_get_emails_to_send, methods=['GET'])
 
 # AI Tools
-app.add_url_rule('/flask/ai-tools/get-dummy-message', view_func=ai_tools.get_dummy_message, methods=['GET'])
+app.add_url_rule('/flask/ai-tools/get-new-userid', view_func=ai_tools.get_new_ai_userid, methods=['GET'])
 
 
 # [Unit]
