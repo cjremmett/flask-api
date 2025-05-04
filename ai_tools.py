@@ -4,6 +4,7 @@ from flask_socketio import send, emit
 from utils import append_to_log
 import uuid
 import datetime
+from datetime import timezone
 from pymongo import MongoClient
 from typing import List
 MONGO_CONNECTION_STRING = 'mongodb://admin:admin@192.168.0.121'
@@ -43,7 +44,7 @@ def store_message(userid: str, messageid: str, message_contents: dict) -> bool:
             "message_contents": message_contents,
             "userid": userid,
             "messageid": messageid,
-            "timestamp": datetime.utcnow()
+            "timestamp": datetime.datetime.now(timezone.utc)
         }
 
         # Insert the record
