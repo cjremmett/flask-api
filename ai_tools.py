@@ -15,19 +15,19 @@ from main import socketio
 
 def generate_new_ai_user_id():
     """Generate a new user ID using UUID4."""
-    new_uuid = 'cjr-userid-' + uuid.uuid4()
+    new_uuid = 'cjr-userid-' + str(uuid.uuid4())
     return new_uuid
 
 
 def generate_new_ai_chat_id():
     """Generate a new chat room ID using UUID4."""
-    new_uuid = 'cjr-chatid-' + uuid.uuid4()
+    new_uuid = 'cjr-chatid-' + str(uuid.uuid4())
     return new_uuid
 
 
 def generate_new_ai_message_id():
     """Generate a new chhat message ID using UUID4."""
-    new_uuid = 'cjr-messageid-' + uuid.uuid4()
+    new_uuid = 'cjr-messageid-' + str(uuid.uuid4())
     return new_uuid
 
 
