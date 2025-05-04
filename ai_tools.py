@@ -117,12 +117,12 @@ def handle_user_message(userid: str, message_contents: dict):
         append_to_log('flask_logs', 'AI', 'ERROR', f"Error handling user message: {repr(e)}")
 
 
-@socketio.on('user_message')
+@socketio.on('server_message')
 def handle_message(data):
     append_to_log('flask_logs', 'AI', 'DEBUG', str(data))
     handle_user_message(data['userid'], {'message': data['message'], 'isSystemMessage': False})
     dummy_ai_reponse = {"message": 'Hello world! This is a dummy AI response!', "isSystemMessage": True}
-    send(message=dummy_ai_reponse)
+    emit('server_message', dummy_ai_reponse)
 
 
 def get_new_ai_userid():
