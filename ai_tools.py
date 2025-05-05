@@ -117,7 +117,7 @@ def handle_user_message(userid: str, message_contents: dict):
         append_to_log('flask_logs', 'AI', 'ERROR', f"Error handling user message: {repr(e)}")
 
 
-@socketio.on('server_message')
+@socketio.on('user_message')
 def handle_message(data):
     try:
         append_to_log('flask_logs', 'AI', 'DEBUG', str(data))
