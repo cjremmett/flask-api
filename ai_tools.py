@@ -119,14 +119,12 @@ def handle_user_message(userid: str, message_contents: dict):
 
 @socketio.on('user_message')
 def handle_message(data):
-    try:
-        append_to_log('flask_logs', 'AI', 'DEBUG', str(data))
-        handle_user_message(data['userid'], {'message': data['message'], 'isSystemMessage': False})
-        dummy_ai_reponse = {"message": 'Hello world! This is a dummy AI response!', "isSystemMessage": True}
-        emit('server_message', dummy_ai_reponse)
-        send(message=dummy_ai_reponse, json=True, namespace='server_message')
-    except Exception as e:
-        append_to_log('flask_logs', 'AI', 'ERROR', f"Error handling user message: {repr(e)}")
+    append_to_log('flask_logs', 'AI', 'DEBUG', str(data))
+    handle_user_message(data['userid'], {'message': data['message'], 'isSystemMessage': False})
+    dummy_ai_reponse = {"message": 'Hello world! This is a dummy AI response!', "isSystemMessage": True}
+    #emit('server_message', dummy_ai_reponse)
+    #send(message=dummy_ai_reponse, json=True, namespace='server_message')
+    
 
 def get_new_ai_userid():
     try:
