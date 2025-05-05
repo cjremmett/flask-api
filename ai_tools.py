@@ -124,6 +124,11 @@ def handle_message(data):
     dummy_ai_reponse = {"message": 'Hello world! This is a dummy AI response!', "isSystemMessage": True}
     #emit('server_message', dummy_ai_reponse)
     #send(message=dummy_ai_reponse, json=True, namespace='server_message')
+
+
+@socketio.on('connection_error')
+def handle_error(error):
+    append_to_log('flask_logs', 'AI', 'ERROR', str(error))
     
 
 def get_new_ai_userid():
