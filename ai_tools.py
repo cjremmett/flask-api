@@ -100,7 +100,7 @@ def handle_user_message(userid: str, message_contents: dict):
 
         # Store message in MongoDB. If successful, send back to user to display.
         if store_message(userid, generate_new_ai_message_id(), message_contents):
-            send({
+            emit('server_message', {
                 "message": message_contents['message'],
                 "isSystemMessage": message_contents['isSystemMessage']
             })
@@ -112,7 +112,7 @@ def handle_user_message(userid: str, message_contents: dict):
 
         # Store AI response. If successful, send to user to display.
         if store_message(userid, generate_new_ai_message_id(), dummy_ai_reponse):
-            send(message=dummy_ai_reponse, json=True, namespace='server_message')
+            emit('server_message', dummy_ai_reponse)
         else:
             return
         
