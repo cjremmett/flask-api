@@ -96,7 +96,6 @@ def get_messages_by_user(userid: str) -> List[dict]:
 def handle_user_message(userid: str, message_contents: dict):
     try:
         append_to_log('flask_logs', 'AI', 'TRACE', 'Processing message: ' + str(message_contents))
-        append_to_log('flask_logs', 'AI', 'TRACE', 'Processing message: ' + str(message_contents['message']))
 
         # Store message in MongoDB. If successful, send back to user to display.
         if store_message(userid, generate_new_ai_message_id(), message_contents):
@@ -128,9 +127,6 @@ def handle_message(data):
         append_to_log('flask_logs', 'AI', 'DEBUG', str(data))
         json_data = json.loads(data)
         handle_user_message(json_data['userid'], {'message': json_data['message'], 'isSystemMessage': False})
-        #dummy_ai_reponse = {"message": 'Hello world! This is a dummy AI response!', "isSystemMessage": True}
-        #emit('server_message', dummy_ai_reponse)
-        #send(message=dummy_ai_reponse, json=True, namespace='server_message')
     except Exception as e:
         append_to_log('flask_logs', 'AI', 'ERROR', f"Error handling user message socketio decorator fucntion: {repr(e)}")
     
