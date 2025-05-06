@@ -103,7 +103,7 @@ def handle_user_message(userid: str, message_contents: dict):
                 "message": message_contents['message'],
                 "isSystemMessage": message_contents['isSystemMessage']
             }
-            emit('server_message', str(message_dict))
+            emit('server_message', json.dumps(message_dict))
         else:
             return
         
@@ -112,7 +112,7 @@ def handle_user_message(userid: str, message_contents: dict):
 
         # Store AI response. If successful, send to user to display.
         if store_message(userid, generate_new_ai_message_id(), dummy_ai_reponse):
-            emit('server_message', str(dummy_ai_reponse))
+            emit('server_message', json.dumps(dummy_ai_reponse))
         else:
             return
         
