@@ -8,7 +8,8 @@ from datetime import timezone
 from pymongo import MongoClient
 from typing import List
 import json
-from gemini_integration import submit_prompt_to_gemini
+from finance_tools import get_earnings_call_transcript
+from gemini_integration import submit_prompt_to_gemini, submit_messages_to_gemini
 MONGO_CONNECTION_STRING = 'mongodb://admin:admin@192.168.0.121'
 
 # Need this to support socketio decorators
@@ -22,6 +23,16 @@ def generate_new_ai_user_id():
     return new_uuid
 
 
+def get_new_ai_userid():
+    try:
+        new_userid = generate_new_ai_user_id()
+        append_to_log('flask_logs', 'AI', 'INFO', 'New user created with ID ' + new_userid + '.')
+        return ({"userid": new_userid}, 200)
+    except Exception as e:
+        append_to_log('flask_logs', 'AI', 'ERROR', f"Error creating new user ID: {repr(e)}")
+        return('', 500)
+
+
 def generate_new_ai_chat_id():
     """Generate a new chat room ID using UUID4."""
     new_uuid = 'cjr-chatid-' + str(uuid.uuid4())
@@ -32,9 +43,118 @@ def generate_new_ai_message_id():
     """Generate a new chhat message ID using UUID4."""
     new_uuid = 'cjr-messageid-' + str(uuid.uuid4())
     return new_uuid
+    
+
+@socketio.on('earnings_call_inquiry')
+def handle_earnings_call_inquiry(data):
+    """Expects data to contain JSON in the following format:
+    {
+        "userid": "cjr-userid-example",
+        "chatid": "cjr-chatid-example",
+        "message": {
+            "ticker": "AAPL",
+            "year": 2025,
+            "quarter": 1,
+            "content": "Some user question."
+        }
+    }
+    """
+    try:
+        append_to_log('flask_logs', 'AI', 'DEBUG', 'Earnings call chat message submitted: ' + str(data))
+
+        messages_history = retrieve_earnings_call_inquiry_message_thread_from_database(data['userid'], data['chatid'])
+
+        # If this is the first message, load the relevant transcript and initialize the message list
+        if messages_history == None:
+            append_to_log('flask_logs', 'AI', 'DEBUG', 'Earnings call inquiry chat started about ticker ' + data['message']['ticker'] + ' for Q' + data['message']['quater'] + ' ' + data['message']['year'] + '.')
+            transcript = get_earnings_call_transcript(data['message']['ticker'], data['message']['year'], data['message']['quarter'])
+            messages_history = [(
+                "tool",
+                transcript
+            ),
+            (
+                "system",
+                "You are a helpful assistant. Carefully review the entire earnings call transcript in the previous message before answering any questions."
+            )]
+        
+        # Append the user message to the list
+        messages_history = append_message_to_messages_list('user', data['message']['content'], messages_history)
+
+        # Send message back to user to load into the view
+        send_earnings_call_inquiry_message_to_user('earnings_call_inquiry', {"role": "user", "message": data['message']['content']})
+
+        # Call the AI to get a response to the user message
+        ai_response = submit_messages_to_gemini(messages_history)
+        append_to_log('flask_logs', 'AI', 'DEBUG', 'AI responded with: ' + ai_response[0])
+
+        # Store updated message thread in database
+        store_earnings_call_inquiry_message_thread_to_database(data['userid'], data['chatid'], ai_response[1])
+
+        # Send AI response to the user
+        send_earnings_call_inquiry_message_to_user('earnings_call_inquiry', {"role": "assistant", "message": ai_response[0]})
+
+    except Exception as e:
+        append_to_log('flask_logs', 'AI', 'ERROR', f"Error processing handle_earnings_call_inquiry socketio decorator function: {repr(e)}")
 
 
-def store_message(userid: str, messageid: str, message_contents: dict) -> bool:
+def send_earnings_call_inquiry_message_to_user(namespace: str, message: dict) -> None:
+    # Need to use json.dumps to send a string because the frontend cannot parse a dict
+    emit(namespace, json.dumps(message))
+
+
+def append_message_to_messages_list(role: str, message: str, messages: List) -> List:
+    return messages.append((role, message))
+
+
+def store_earnings_call_inquiry_message_thread_to_database(userid: str, chatid: str, messages: List) -> bool:
+    try:
+        # Connect to MongoDB
+        client = MongoClient(MONGO_CONNECTION_STRING)
+        db = client["ai"]
+        collection = db["chats"]
+
+        # Generate the JSON to store
+        messages_json = json.dumps(messages)
+
+        # Upsert the message
+        query = {"userid": userid, "chatid": chatid}
+        update = {"$set": {"messages": messages_json}}
+        result = collection.update_one(query, update, upsert=True)
+
+        # Return True if the operation was successful
+        return result.acknowledged
+
+    except Exception as e:
+        append_to_log('flask_logs', 'AI', 'ERROR', f"Error upserting MongoDB record: {repr(e)}")
+        return False
+
+    finally:
+        client.close()
+
+
+def retrieve_earnings_call_inquiry_message_thread_from_database(userid: str, chatid: str) -> dict:
+    try:
+        # Connect to MongoDB
+        client = MongoClient(MONGO_CONNECTION_STRING)
+        db = client["ai"]
+        collection = db["chats"]
+
+        query = {"userid": userid, "chatid": chatid}
+        first_record = collection.find_one(query)
+
+        return first_record
+
+    except Exception as e:
+        append_to_log('flask_logs', 'AI', 'ERROR', f"Error retrieving MongoDB record: {repr(e)}")
+        return None
+
+    finally:
+        client.close()
+
+
+#####
+
+def store_message(userid: str, chatid: str, message_contents: dict) -> bool:
     try:
         # Connect to MongoDB
         client = MongoClient(MONGO_CONNECTION_STRING)
@@ -42,10 +162,12 @@ def store_message(userid: str, messageid: str, message_contents: dict) -> bool:
         collection = db["messages"]
 
         # Insert the message
+
+        
         record = {
-            "message_contents": message_contents,
             "userid": userid,
-            "messageid": messageid,
+            "chatid": chatid,
+            "message_contents": message_contents,
             "timestamp": datetime.datetime.now(timezone.utc)
         }
 
@@ -62,6 +184,13 @@ def store_message(userid: str, messageid: str, message_contents: dict) -> bool:
     finally:
         # Close the MongoDB connection
         client.close()
+
+
+         # Upsert the record
+        
+
+        # Return True if the operation was successful
+        return result.acknowledged
 
 
 def get_messages_by_user(userid: str) -> List[dict]:
@@ -131,34 +260,3 @@ def handle_message(data):
         handle_user_message(data['userid'], {'message': data['message'], 'isSystemMessage': False})
     except Exception as e:
         append_to_log('flask_logs', 'AI', 'ERROR', f"Error handling user message socketio decorator fucntion: {repr(e)}")
-    
-
-@socketio.on('earnings_call_inquiry')
-def handle_earnings_call_inquiry(data):
-    """Expects data to contain JSON in the following format:
-    {
-        "userid": "cjr-userid-example",
-        "chatid": "cjr-chatid-example",
-        "ticker": "AAPL",
-        "year": 2025,
-        "quarter": 1
-        "
-    }
-    
-    
-    """
-    try:
-        append_to_log('flask_logs', 'AI', 'DEBUG', str(data))
-        handle_user_message(data['userid'], {'message': data['message'], 'isSystemMessage': False})
-    except Exception as e:
-        append_to_log('flask_logs', 'AI', 'ERROR', f"Error handling user message socketio decorator fucntion: {repr(e)}")
-
-
-def get_new_ai_userid():
-    try:
-        new_userid = generate_new_ai_user_id()
-        append_to_log('flask_logs', 'AI', 'INFO', 'New user created with ID ' + new_userid + '.')
-        return ({"userid": new_userid}, 200)
-    except Exception as e:
-        append_to_log('flask_logs', 'AI', 'ERROR', f"Error creating new user ID: {repr(e)}")
-        return('', 500)
