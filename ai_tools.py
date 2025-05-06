@@ -8,6 +8,7 @@ from datetime import timezone
 from pymongo import MongoClient
 from typing import List
 import json
+from gemini_integration import submit_prompt_to_gemini
 MONGO_CONNECTION_STRING = 'mongodb://admin:admin@192.168.0.121'
 
 # Need this to support socketio decorators
@@ -108,11 +109,12 @@ def handle_user_message(userid: str, message_contents: dict):
             return
         
         # Generate AI response
-        dummy_ai_reponse = {"message": 'Hello world! This is a dummy AI response!', "isSystemMessage": True}
+        ai_text_response = submit_prompt_to_gemini(f"You are a helpful assistant. Response with the stock ticker you think is most relevant to the following user input: {message_contents['message']}")
+        ai_reponse = {"message": ai_text_response, "isSystemMessage": True}
 
         # Store AI response. If successful, send to user to display.
-        if store_message(userid, generate_new_ai_message_id(), dummy_ai_reponse):
-            emit('server_message', json.dumps(dummy_ai_reponse))
+        if store_message(userid, generate_new_ai_message_id(), ai_reponse):
+            emit('server_message', json.dumps(ai_reponse))
         else:
             return
         
