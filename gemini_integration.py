@@ -18,10 +18,9 @@
 
 import os
 from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.output_parsers import StrOutputParser
 from redis_tools import get_secrets_dict
 from utils import append_to_log
+from typing import List
 
 
 def get_gemini_api_key() -> str:
@@ -31,12 +30,15 @@ def get_gemini_api_key() -> str:
     except Exception as e:
         append_to_log('flask_logs', 'GEMINI_INTEGRATION', 'ERROR', 'Exception thrown in get_gemini_api_key: ' + repr(e))
         return ''
+    
+
+def ensure_api_key_environment_variable() -> None:
+    if os.environ["GOOGLE_API_KEY"] == None or os.environ["GOOGLE_API_KEY"] == '':
+        os.environ["GOOGLE_API_KEY"] = get_gemini_api_key()
 
 
 def submit_prompt_to_gemini(prompt: str) -> str:
-    # Set your Google API key as an environment variable
-    # This is the most secure way to handle your API key
-    os.environ["GOOGLE_API_KEY"] = get_gemini_api_key()
+    ensure_api_key_environment_variable()
 
     llm = ChatGoogleGenerativeAI(
         model="gemini-2.0-flash",
@@ -49,13 +51,38 @@ def submit_prompt_to_gemini(prompt: str) -> str:
     messages = [
         (
             "system",
-            "You are a helpful assistant. Answer the following question to the best of your ability.",
+            "You are a helpful assistant. Respond to the following query to the best of your ability.",
         ),
         (
-            "human",
+            "user",
             prompt
         )
     ]
     
+    append_to_log('flask_logs', 'GEMINI_INTEGRATION', 'INFO', 'User submitted the following prompt: ' + prompt)
     ai_msg = llm.invoke(messages)
+    append_to_log('flask_logs', 'GEMINI_INTEGRATION', 'INFO', 'Gemini responsed: ' + ai_msg.content)
     return ai_msg.content
+
+
+def submit_messages_to_gemini(messages: List) -> tuple:
+    """Returns the text response as the first element and the messages list with the response appended as the second element."""
+    
+    ensure_api_key_environment_variable()
+
+    llm = ChatGoogleGenerativeAI(
+        model="gemini-2.0-flash",
+        temperature=0,
+        max_tokens=None,
+        timeout=None,
+        max_retries=2
+    )
+
+    append_to_log('flask_logs', 'GEMINI_INTEGRATION', 'INFO', 'Langchain messages input: ' + str(messages))
+    ai_msg = llm.invoke(messages)
+    append_to_log('flask_logs', 'GEMINI_INTEGRATION', 'INFO', 'Gemini responsed: ' + ai_msg.content)
+    messages.append((
+        "assistant",
+        ai_msg.content
+    ))
+    return ai_msg.content, messages

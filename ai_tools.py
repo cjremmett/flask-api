@@ -133,6 +133,27 @@ def handle_message(data):
         append_to_log('flask_logs', 'AI', 'ERROR', f"Error handling user message socketio decorator fucntion: {repr(e)}")
     
 
+@socketio.on('earnings_call_inquiry')
+def handle_earnings_call_inquiry(data):
+    """Expects data to contain JSON in the following format:
+    {
+        "userid": "cjr-userid-example",
+        "chatid": "cjr-chatid-example",
+        "ticker": "AAPL",
+        "year": 2025,
+        "quarter": 1
+        "
+    }
+    
+    
+    """
+    try:
+        append_to_log('flask_logs', 'AI', 'DEBUG', str(data))
+        handle_user_message(data['userid'], {'message': data['message'], 'isSystemMessage': False})
+    except Exception as e:
+        append_to_log('flask_logs', 'AI', 'ERROR', f"Error handling user message socketio decorator fucntion: {repr(e)}")
+
+
 def get_new_ai_userid():
     try:
         new_userid = generate_new_ai_user_id()
