@@ -109,7 +109,7 @@ def handle_user_message(userid: str, message_contents: dict):
             return
         
         # Generate AI response
-        ai_text_response = submit_prompt_to_gemini(f"You are a helpful assistant. Response with the stock ticker you think is most relevant to the following user input: {message_contents['message']}")
+        ai_text_response = submit_prompt_to_gemini(f"{message_contents['message']}")
         ai_reponse = {"message": ai_text_response, "isSystemMessage": True}
 
         # Store AI response. If successful, send to user to display.
