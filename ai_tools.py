@@ -125,8 +125,8 @@ def handle_user_message(userid: str, message_contents: dict):
 def handle_message(data):
     try:
         append_to_log('flask_logs', 'AI', 'DEBUG', str(data))
-        json_data = json.loads(data)
-        handle_user_message(json_data['userid'], {'message': json_data['message'], 'isSystemMessage': False})
+        # json_data = json.loads(data)
+        handle_user_message(data['userid'], {'message': data['message'], 'isSystemMessage': False})
     except Exception as e:
         append_to_log('flask_logs', 'AI', 'ERROR', f"Error handling user message socketio decorator fucntion: {repr(e)}")
     
