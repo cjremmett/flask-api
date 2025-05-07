@@ -339,7 +339,7 @@ def get_earnings_call_transcript(ticker: str, year: int, quarter: int) -> str:
     :return: The transcript as a string.
     """
     try:
-        ticker = ticker.trim().upper()
+        ticker = ticker.strip().upper()
 
         # Check if the transcript exists in the database
         transcript = get_earnings_call_transcript_from_db(ticker, year, quarter)
