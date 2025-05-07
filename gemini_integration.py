@@ -33,7 +33,7 @@ def get_gemini_api_key() -> str:
     
 
 def ensure_api_key_environment_variable() -> None:
-    if os.environ["GOOGLE_API_KEY"] == None or os.environ["GOOGLE_API_KEY"] == '':
+    if "GOOGLE_API_KEY" not in os.environ or os.environ["GOOGLE_API_KEY"] == None or os.environ["GOOGLE_API_KEY"] == '':
         os.environ["GOOGLE_API_KEY"] = get_gemini_api_key()
 
 
