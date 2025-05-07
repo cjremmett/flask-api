@@ -51,7 +51,7 @@ app.add_url_rule('/flask/email-tools/get-outgoing-gscript-emails', view_func=ema
 
 # AI Tools
 app.add_url_rule('/flask/ai-tools/get-new-userid', view_func=ai_tools.get_new_ai_userid, methods=['GET'])
-
+app.add_url_rule('/flask/ai-tools/get-chat-history', view_func=ai_tools.get_earnings_call_chat_history, methods=['GET'])
 
 # [Unit]
 # Description=Gunicorn Flask Server

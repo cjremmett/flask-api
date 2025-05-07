@@ -1,15 +1,12 @@
-from flask import jsonify
-from time import sleep
-from flask_socketio import send, emit
+from flask import request
+from flask_socketio import emit
 from utils import append_to_log
 import uuid
-import datetime
-from datetime import timezone
 from pymongo import MongoClient
 from typing import List
 import json
 from finance_tools import get_earnings_call_transcript
-from gemini_integration import submit_prompt_to_gemini, submit_messages_to_gemini
+from gemini_integration import submit_messages_to_gemini
 MONGO_CONNECTION_STRING = 'mongodb://admin:admin@192.168.0.121'
 
 # Need this to support socketio decorators
@@ -156,111 +153,17 @@ def retrieve_earnings_call_inquiry_message_thread_from_database(userid: str, cha
         client.close()
 
 
-#####
-
-def store_message(userid: str, chatid: str, message_contents: dict) -> bool:
-    try:
-        # Connect to MongoDB
-        client = MongoClient(MONGO_CONNECTION_STRING)
-        db = client["ai"]
-        collection = db["messages"]
-
-        # Insert the message
-
-        
-        record = {
-            "userid": userid,
-            "chatid": chatid,
-            "message_contents": message_contents,
-            "timestamp": datetime.datetime.now(timezone.utc)
-        }
-
-        # Insert the record
-        result = collection.insert_one(record)
-
-        # Return True if the operation was successful
-        return result.acknowledged
-
-    except Exception as e:
-        append_to_log('flask_logs', 'AI', 'ERROR', f"Error inserting MongoDB record: {repr(e)}")
-        return False
-
-    finally:
-        # Close the MongoDB connection
-        client.close()
-
-
-         # Upsert the record
-        
-
-        # Return True if the operation was successful
-        return result.acknowledged
-
-
-def get_messages_by_user(userid: str) -> List[dict]:
+def get_earnings_call_chat_history():
     """
-    Retrieves all records from MongoDB where the userid field matches the given userid.
-    Orders the results by timestamp in ascending order.
-
-    :param userid: The user ID to filter messages by.
-    :return: A list of messages as dictionaries, or an empty list if no records are found.
+    Query parameters:
+    userid, chatid
     """
     try:
-        # Connect to MongoDB
-        client = MongoClient(MONGO_CONNECTION_STRING)
-        db = client["ai"]
-        collection = db["messages"]
-
-        # Query the database and sort by timestamp in ascending order
-        query = {"userid": userid}
-        messages = list(collection.find(query).sort("timestamp", 1))
-
-        return messages
+        userid = request.args.get('userid')
+        chatid = request.args.get('chatid')
+        history = retrieve_earnings_call_inquiry_message_thread_from_database(userid, chatid)
+        return (history, 200)
 
     except Exception as e:
-        # Log the error
-        append_to_log('flask_logs', 'AI', 'ERROR', f"Error retrieving messages from MongoDB: {repr(e)}")
-        return []
-
-    finally:
-        # Close the MongoDB connection
-        client.close()
-
-
-def handle_user_message(userid: str, message_contents: dict):
-    try:
-        append_to_log('flask_logs', 'AI', 'TRACE', 'Processing message: ' + str(message_contents))
-
-        # Store message in MongoDB. If successful, send back to user to display.
-        if store_message(userid, generate_new_ai_message_id(), message_contents):
-            message_dict = {
-                "message": message_contents['message'],
-                "isSystemMessage": message_contents['isSystemMessage']
-            }
-            emit('server_message', json.dumps(message_dict))
-        else:
-            return
-        
-        # Generate AI response
-        ai_text_response = submit_prompt_to_gemini(f"{message_contents['message']}")
-        ai_reponse = {"message": ai_text_response, "isSystemMessage": True}
-
-        # Store AI response. If successful, send to user to display.
-        if store_message(userid, generate_new_ai_message_id(), ai_reponse):
-            emit('server_message', json.dumps(ai_reponse))
-        else:
-            return
-        
-
-    except Exception as e:
-        append_to_log('flask_logs', 'AI', 'ERROR', f"Error handling user message: {repr(e)}")
-
-
-@socketio.on('user_message')
-def handle_message(data):
-    try:
-        append_to_log('flask_logs', 'AI', 'DEBUG', str(data))
-        # json_data = json.loads(data)
-        handle_user_message(data['userid'], {'message': data['message'], 'isSystemMessage': False})
-    except Exception as e:
-        append_to_log('flask_logs', 'AI', 'ERROR', f"Error handling user message socketio decorator fucntion: {repr(e)}")
+        append_to_log('flask_logs', 'AI', 'ERROR', f"Error retrieving chat history: {repr(e)}")
+        return ('', 500)
