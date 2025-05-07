@@ -69,7 +69,7 @@ def handle_earnings_call_inquiry(data):
             append_to_log('flask_logs', 'AI', 'DEBUG', 'Earnings call inquiry chat started about ticker ' + str(data['message']['ticker']) + ' for Q' + str(data['message']['quarter']) + ' ' + str(data['message']['year']) + '.')
             transcript = get_earnings_call_transcript(data['message']['ticker'], data['message']['year'], data['message']['quarter'])
             messages_history = [(
-                "tool",
+                "system",
                 transcript
             ),
             (
@@ -78,7 +78,7 @@ def handle_earnings_call_inquiry(data):
             )]
         
         # Append the user message to the list
-        messages_history = append_message_to_messages_list('user', data['message']['content'], messages_history)
+        append_message_to_messages_list('user', data['message']['content'], messages_history)
 
         # Send message back to user to load into the view
         send_earnings_call_inquiry_message_to_user('earnings_call_inquiry', {"role": "user", "message": data['message']['content']})
