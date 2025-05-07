@@ -76,14 +76,15 @@ def handle_earnings_call_inquiry(data):
                 "system",
                 "You are a helpful assistant. Carefully review the entire earnings call transcript in the previous message before answering any questions."
             )]
-        else:
-            messages_history = list(messages_history)
         
         # Append the user message to the list
         append_message_to_messages_list('user', data['message']['content'], messages_history)
 
         # Send message back to user to load into the view
         send_earnings_call_inquiry_message_to_user('earnings_call_inquiry', {"role": "user", "message": data['message']['content']})
+        
+        # Store updated message thread in database
+        store_earnings_call_inquiry_message_thread_to_database(data['userid'], data['chatid'], messages_history)
 
         # Call the AI to get a response to the user message
         ai_response = submit_messages_to_gemini(messages_history)
@@ -135,7 +136,7 @@ def store_earnings_call_inquiry_message_thread_to_database(userid: str, chatid: 
         client.close()
 
 
-def retrieve_earnings_call_inquiry_message_thread_from_database(userid: str, chatid: str) -> dict:
+def retrieve_earnings_call_inquiry_message_thread_from_database(userid: str, chatid: str) -> List:
     try:
         # Connect to MongoDB
         client = MongoClient(MONGO_CONNECTION_STRING)
@@ -145,7 +146,7 @@ def retrieve_earnings_call_inquiry_message_thread_from_database(userid: str, cha
         query = {"userid": userid, "chatid": chatid}
         first_record = collection.find_one(query)
 
-        return first_record['messages'] if first_record is not None else None
+        return list(json.loads(first_record['messages'])) if first_record is not None else None
 
     except Exception as e:
         append_to_log('flask_logs', 'AI', 'ERROR', f"Error retrieving MongoDB record: {repr(e)}")
