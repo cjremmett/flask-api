@@ -66,7 +66,7 @@ def handle_earnings_call_inquiry(data):
 
         # If this is the first message, load the relevant transcript and initialize the message list
         if messages_history == None:
-            append_to_log('flask_logs', 'AI', 'DEBUG', 'Earnings call inquiry chat started about ticker ' + data['message']['ticker'] + ' for Q' + data['message']['quater'] + ' ' + data['message']['year'] + '.')
+            append_to_log('flask_logs', 'AI', 'DEBUG', 'Earnings call inquiry chat started about ticker ' + data['message']['ticker'] + ' for Q' + data['message']['quarter'] + ' ' + data['message']['year'] + '.')
             transcript = get_earnings_call_transcript(data['message']['ticker'], data['message']['year'], data['message']['quarter'])
             messages_history = [(
                 "tool",
