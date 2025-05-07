@@ -103,7 +103,8 @@ def send_earnings_call_inquiry_message_to_user(namespace: str, message: dict) ->
 
 
 def append_message_to_messages_list(role: str, message: str, messages: List) -> List:
-    return messages.append((role, message))
+    messages.append((role, message))
+    return messages
 
 
 def store_earnings_call_inquiry_message_thread_to_database(userid: str, chatid: str, messages: List) -> bool:
