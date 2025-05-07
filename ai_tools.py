@@ -145,7 +145,7 @@ def retrieve_earnings_call_inquiry_message_thread_from_database(userid: str, cha
         query = {"userid": userid, "chatid": chatid}
         first_record = collection.find_one(query)
 
-        return first_record
+        return first_record['messages'] if first_record is not None else None
 
     except Exception as e:
         append_to_log('flask_logs', 'AI', 'ERROR', f"Error retrieving MongoDB record: {repr(e)}")
