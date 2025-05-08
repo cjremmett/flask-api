@@ -172,6 +172,7 @@ def get_all_chats_for_user(userid: str) -> List[dict]:
         query = {"userid": userid}
         projection = {"message": 0}
         chats = list(collection.find(query, projection).sort("timestamp", -1))
+        append_to_log('flask_logs', 'AI', 'DEBUG', f"Chats: {str(chats)}")
 
         return chats
 
