@@ -49,11 +49,12 @@ def handle_earnings_call_inquiry(data):
     {
         "userid": "cjr-userid-example",
         "chatid": "cjr-chatid-example",
+        "ticker": "AAPL",
+        "year": 2025,
+        "quarter": 1,
         "message": {
-            "ticker": "AAPL",
-            "year": 2025,
-            "quarter": 1,
-            "content": "Some user question."
+            "role": "assistant",
+            "content": "Some AI response."
         }
     }
     """
@@ -64,8 +65,8 @@ def handle_earnings_call_inquiry(data):
 
         # If this is the first message, load the relevant transcript and initialize the message list
         if messages_history == None:
-            append_to_log('flask_logs', 'AI', 'DEBUG', 'Earnings call inquiry chat started about ticker ' + str(data['message']['ticker']) + ' for Q' + str(data['message']['quarter']) + ' ' + str(data['message']['year']) + '.')
-            transcript = get_earnings_call_transcript(data['message']['ticker'], data['message']['year'], data['message']['quarter'])
+            append_to_log('flask_logs', 'AI', 'DEBUG', 'Earnings call inquiry chat started about ticker ' + str(data['ticker']) + ' for Q' + str(data['quarter']) + ' ' + str(data['year']) + '.')
+            transcript = get_earnings_call_transcript(data['ticker'], data['year'], data['quarter'])
             messages_history = [(
                 "system",
                 transcript
@@ -82,14 +83,14 @@ def handle_earnings_call_inquiry(data):
         send_earnings_call_inquiry_message_to_user('earnings_call_inquiry', {"role": "user", "message": data['message']['content']})
         
         # Store updated message thread in database
-        store_earnings_call_inquiry_message_thread_to_database(data['userid'], data['chatid'], int(time.time()), messages_history)
+        store_earnings_call_inquiry_message_thread_to_database(data, int(time.time()), messages_history)
 
         # Call the AI to get a response to the user message
         ai_response = submit_messages_to_gemini(messages_history)
         append_to_log('flask_logs', 'AI', 'DEBUG', 'AI responded with: ' + ai_response[0])
 
         # Store updated message thread in database
-        store_earnings_call_inquiry_message_thread_to_database(data['userid'], data['chatid'], int(time.time()), ai_response[1])
+        store_earnings_call_inquiry_message_thread_to_database(data, int(time.time()), ai_response[1])
 
         # Send AI response to the user
         send_earnings_call_inquiry_message_to_user('earnings_call_inquiry', {"role": "assistant", "message": ai_response[0]})
@@ -108,7 +109,7 @@ def append_message_to_messages_list(role: str, message: str, messages: List) -> 
     return messages
 
 
-def store_earnings_call_inquiry_message_thread_to_database(userid: str, chatid: str, timestamp: int, messages: List) -> bool:
+def store_earnings_call_inquiry_message_thread_to_database(data: dict, timestamp: int, messages: List) -> bool:
     try:
         # Connect to MongoDB
         client = MongoClient(MONGO_CONNECTION_STRING)
@@ -119,8 +120,16 @@ def store_earnings_call_inquiry_message_thread_to_database(userid: str, chatid: 
         messages_json = json.dumps(messages)
 
         # Upsert the message
-        query = {"userid": userid, "chatid": chatid}
-        update = {"$set": {"messages": messages_json, "timestamp": timestamp}}
+        query = {"userid": data['userid'], "chatid": data['chatid']}
+        update = {"$set": {
+            "userid": data['userid'],
+            "chatid": data['chatid'],
+            "ticker": data['ticker'],
+            "quarter": data['quarter'],
+            "year": data['year'],
+            "timestamp": timestamp,
+            "messages": messages_json
+        }}
         result = collection.update_one(query, update, upsert=True)
 
         # Return True if the operation was successful
