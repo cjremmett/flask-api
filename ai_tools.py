@@ -4,6 +4,7 @@ from utils import append_to_log
 import uuid
 from pymongo import MongoClient
 from typing import List
+import time
 import json
 from finance_tools import get_earnings_call_transcript
 from gemini_integration import submit_messages_to_gemini
@@ -81,14 +82,14 @@ def handle_earnings_call_inquiry(data):
         send_earnings_call_inquiry_message_to_user('earnings_call_inquiry', {"role": "user", "message": data['message']['content']})
         
         # Store updated message thread in database
-        store_earnings_call_inquiry_message_thread_to_database(data['userid'], data['chatid'], messages_history)
+        store_earnings_call_inquiry_message_thread_to_database(data['userid'], data['chatid'], int(time.time()), messages_history)
 
         # Call the AI to get a response to the user message
         ai_response = submit_messages_to_gemini(messages_history)
         append_to_log('flask_logs', 'AI', 'DEBUG', 'AI responded with: ' + ai_response[0])
 
         # Store updated message thread in database
-        store_earnings_call_inquiry_message_thread_to_database(data['userid'], data['chatid'], ai_response[1])
+        store_earnings_call_inquiry_message_thread_to_database(data['userid'], data['chatid'], int(time.time()), ai_response[1])
 
         # Send AI response to the user
         send_earnings_call_inquiry_message_to_user('earnings_call_inquiry', {"role": "assistant", "message": ai_response[0]})
@@ -107,7 +108,7 @@ def append_message_to_messages_list(role: str, message: str, messages: List) -> 
     return messages
 
 
-def store_earnings_call_inquiry_message_thread_to_database(userid: str, chatid: str, messages: List) -> bool:
+def store_earnings_call_inquiry_message_thread_to_database(userid: str, chatid: str, timestamp: int, messages: List) -> bool:
     try:
         # Connect to MongoDB
         client = MongoClient(MONGO_CONNECTION_STRING)
@@ -119,7 +120,7 @@ def store_earnings_call_inquiry_message_thread_to_database(userid: str, chatid: 
 
         # Upsert the message
         query = {"userid": userid, "chatid": chatid}
-        update = {"$set": {"messages": messages_json}}
+        update = {"$set": {"messages": messages_json, "timestamp": timestamp}}
         result = collection.update_one(query, update, upsert=True)
 
         # Return True if the operation was successful
@@ -153,6 +154,35 @@ def retrieve_earnings_call_inquiry_message_thread_from_database(userid: str, cha
         client.close()
 
 
+def get_all_chats_for_user(userid: str) -> List[dict]:
+    """
+    Retrieves all chat records from MongoDB where the userid matches the given parameter.
+    Orders the results by timestamp in descending order.
+
+    :param userid: The user ID to filter chats by.
+    :return: A list of chat records as dictionaries, or an empty list if no records are found.
+    """
+    try:
+        # Connect to MongoDB
+        client = MongoClient(MONGO_CONNECTION_STRING)
+        db = client["ai"]
+        collection = db["chats"]
+
+        # Query the database and sort by timestamp in descending order
+        query = {"userid": userid}
+        projection = {"message": 0}
+        chats = list(collection.find(query, projection).sort("timestamp", -1))
+
+        return chats
+
+    except Exception as e:
+        append_to_log('flask_logs', 'AI', 'ERROR', f"Error retrieving chats from MongoDB: {repr(e)}")
+        return []
+
+    finally:
+        client.close()
+
+
 def get_earnings_call_chat_history():
     """
     Query parameters:
@@ -163,6 +193,21 @@ def get_earnings_call_chat_history():
         chatid = request.args.get('chatid')
         history = retrieve_earnings_call_inquiry_message_thread_from_database(userid, chatid)
         return (history, 200)
+
+    except Exception as e:
+        append_to_log('flask_logs', 'AI', 'ERROR', f"Error retrieving chat history: {repr(e)}")
+        return ('', 500)
+    
+
+def get_earnings_call_chats():
+    """
+    Query parameters:
+    userid
+    """
+    try:
+        userid = request.args.get('userid')
+        chats = get_all_chats_for_user(userid)
+        return (chats, 200)
 
     except Exception as e:
         append_to_log('flask_logs', 'AI', 'ERROR', f"Error retrieving chat history: {repr(e)}")
