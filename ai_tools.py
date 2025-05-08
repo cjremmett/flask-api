@@ -203,7 +203,8 @@ def get_earnings_call_chat_history():
         userid = request.args.get('userid')
         chatid = request.args.get('chatid')
         history = retrieve_earnings_call_inquiry_message_thread_from_database(userid, chatid)
-        return (history, 200)
+        # Omit the first two messages, which contain the transcript and the initial prompt.
+        return (history[2:], 200)
 
     except Exception as e:
         append_to_log('flask_logs', 'AI', 'ERROR', f"Error retrieving chat history: {repr(e)}")
