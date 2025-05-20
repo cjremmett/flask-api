@@ -356,3 +356,20 @@ def get_earnings_call_transcript(ticker: str, year: int, quarter: int) -> str:
     except Exception as e:
         append_to_log('flask_logs', 'FINANCE', 'ERROR', f"Exception in get_earnings_call_transcript: {repr(e)}")
         return ""
+    
+
+def get_earnings_call_transcript_endpoint():
+    try:
+        if not authorized_via_redis_token(request, 'finance_tools'):
+            return ('', 401)
+        
+        ticker = request.args.get('ticker')
+        quarter = request.args.get('quarter')
+        year = request.args.get('year')
+        transcript = get_earnings_call_transcript(ticker, quarter, year)
+        return ({{"transcript": transcript}}, 200)
+    
+    except Exception as e:
+        append_to_log('flask_logs', 'FINANCE', 'ERROR', f"Exception in get_earnings_call_transcript_endpoint: {repr(e)}")
+        return ('', 500)
+    

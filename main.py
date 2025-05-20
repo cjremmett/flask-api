@@ -36,6 +36,7 @@ app.add_url_rule('/flask', view_func=utils.get_heartbeat, methods=['GET'])
 # Finance
 app.add_url_rule('/flask/finance/get-stock-price-and-market-cap-gurufocus', view_func=finance_tools.get_stock_price_and_market_cap_gurufocus, methods=['GET'])
 app.add_url_rule('/flask/finance/get-forex-conversion', view_func=finance_tools.get_fx_rate_to_usd, methods=['GET'])
+app.add_url_rule('/flask/finance/get-earnings-call-transcript', view_func=finance_tools.get_earnings_call_transcript_endpoint, methods=['GET'])
 
 # GAFG Tools
 app.add_url_rule('/flask/gafg-tools/ioffice-checkin', view_func=gafg_tools.ioffice_checkin, methods=['POST'])
