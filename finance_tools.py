@@ -367,7 +367,7 @@ def get_earnings_call_transcript_endpoint():
         quarter = request.args.get('quarter')
         year = request.args.get('year')
         transcript = get_earnings_call_transcript(ticker, quarter, year)
-        return ({{"transcript": transcript}}, 200)
+        return {"transcript": transcript}
     
     except Exception as e:
         append_to_log('flask_logs', 'FINANCE', 'ERROR', f"Exception in get_earnings_call_transcript_endpoint: {repr(e)}")
