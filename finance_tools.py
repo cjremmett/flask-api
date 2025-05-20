@@ -320,7 +320,7 @@ def get_earnings_call_transcript_from_api_ninjas(ticker: str, year: int, quarter
             data = response.json()
             return data['transcript'] if 'transcript' in data else ""
         else:
-            append_to_log('flask_logs', 'FINANCE', 'ERROR', f"Error fetching transcript for {ticker} {year} {quarter} from API Ninjas: {response.status_code}")
+            append_to_log('flask_logs', 'FINANCE', 'ERROR', f"Error fetching transcript for {ticker} {year} {quarter} from API Ninjas: {response.status_code} {response.content}")
             return ""
 
     except Exception as e:
