@@ -345,11 +345,15 @@ def get_earnings_call_transcript(ticker: str, year: int, quarter: int) -> str:
         transcript = get_earnings_call_transcript_from_db(ticker, year, quarter)
         
         if not transcript or transcript == "":
+            append_to_log('flask_logs', 'FINANCE', 'DEBUG', f"Fetching transcript for {ticker} {year} {quarter} from API Ninjas.")
+
             # If not found, fetch from API Ninjas
             transcript = get_earnings_call_transcript_from_api_ninjas(ticker, year, quarter)
             
             # Store the fetched transcript in the database
             upsert_earnings_call_transcript(ticker, year, quarter, transcript)
+        else:
+            append_to_log('flask_logs', 'FINANCE', 'DEBUG', f"Found transcript for {ticker} {year} {quarter} in MongoDB.")
 
         return transcript
     
