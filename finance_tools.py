@@ -366,7 +366,7 @@ def get_earnings_call_transcript_endpoint():
         ticker = request.args.get('ticker')
         quarter = request.args.get('quarter')
         year = request.args.get('year')
-        transcript = get_earnings_call_transcript(ticker, quarter, year)
+        transcript = get_earnings_call_transcript(ticker, year, quarter)
         return {"transcript": transcript}
     
     except Exception as e:
