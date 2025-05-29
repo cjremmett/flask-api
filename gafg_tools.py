@@ -86,13 +86,13 @@ def get_checkin_url(html_source: str) -> str:
 
 
 def get_sender_email(sender: str) -> str:
-    # Input format: "Remmett, Christopher" <christopher.remmett@gafg.com>
+    # Input format: "Remmett, Christopher" <christopher.remmett@gmail.com>
     splits = sender.split('<')
     return splits[1][:-1]
 
 
 def get_sender_name(sender: str) -> List[str]:
-    # Input format: "Remmett, Christopher" <christopher.remmett@gafg.com>
+    # Input format: "Remmett, Christopher" <christopher.remmett@gmail.com>
     splits = sender.split(',')
     last_name = splits[0][1:]
 
