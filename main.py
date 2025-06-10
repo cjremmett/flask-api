@@ -1,6 +1,5 @@
 from flask import Flask, request
 import email_tools
-import finance_tools
 import gafg_tools
 import utils
 import photography_tools
@@ -13,10 +12,6 @@ from flask_cors import CORS
 app = Flask(__name__)
 socketio = SocketIO(app, path='/flask/socket.io', cors_allowed_origins='*')
 CORS(app)
-
-# Need to import this after creating the socketio variable
-# https://github.com/miguelgrinberg/Flask-SocketIO/issues/561
-import ai_tools
 
 # Boilerplate code to trust the proxy remote IP
 # https://flask.palletsprojects.com/en/2.3.x/deploying/proxy_fix/
@@ -33,11 +28,6 @@ def before_request():
 # Utils
 app.add_url_rule('/flask', view_func=utils.get_heartbeat, methods=['GET'])
 
-# Finance
-app.add_url_rule('/flask/finance/get-stock-price-and-market-cap-gurufocus', view_func=finance_tools.get_stock_price_and_market_cap_gurufocus, methods=['GET'])
-app.add_url_rule('/flask/finance/get-forex-conversion', view_func=finance_tools.get_fx_rate_to_usd, methods=['GET'])
-app.add_url_rule('/flask/finance/get-earnings-call-transcript', view_func=finance_tools.get_earnings_call_transcript_endpoint, methods=['GET'])
-
 # GAFG Tools
 app.add_url_rule('/flask/gafg-tools/ioffice-checkin', view_func=gafg_tools.ioffice_checkin, methods=['POST'])
 app.add_url_rule('/flask/gafg-tools/ioffice-checkin-user-update-settings', view_func=gafg_tools.update_gafg_checkin_user_account, methods=['PUT'])
@@ -49,11 +39,6 @@ app.add_url_rule('/flask/gafg-tools/get-sample-portfolio', view_func=gafg_tools.
 
 # Email Tools
 app.add_url_rule('/flask/email-tools/get-outgoing-gscript-emails', view_func=email_tools.gscript_get_emails_to_send, methods=['GET'])
-
-# AI Tools
-app.add_url_rule('/flask/ai-tools/get-new-userid', view_func=ai_tools.get_new_ai_userid, methods=['GET'])
-app.add_url_rule('/flask/ai-tools/get-chat-messages', view_func=ai_tools.get_earnings_call_chat_history, methods=['GET'])
-app.add_url_rule('/flask/ai-tools/get-chats', view_func=ai_tools.get_earnings_call_chats, methods=['GET'])
 
 # [Unit]
 # Description=Gunicorn Flask Server
